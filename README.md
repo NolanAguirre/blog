@@ -2,6 +2,8 @@
 
 A static HTML blog with shared styling across all pages.
 
+https://nolanaguirre.github.io/blog/index.html
+
 ## Structure
 
 ```
