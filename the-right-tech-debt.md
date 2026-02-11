@@ -1,0 +1,2 @@
+# TODO
+The premise is this, tech debt in implementation is far less painful than tech debt in interfaces. Changing interfaces incurs cooridination and sync costs between two parts now, poteintally cascading failures and complexities

@@ -1,0 +1,52 @@
+# Blog Project Rules
+
+## Styling
+
+- **NEVER create page-specific CSS files.** All pages must use `css/style.css`.
+- **NEVER add inline styles** to HTML elements.
+- When a new style is needed, add it to `css/style.css` so it can be reused.
+- Edit CSS variables in `:root` to change colors, fonts, or spacing globally.
+- Prefer existing CSS classes over creating new ones.
+
+## HTML Structure
+
+- All HTML pages must link to `../css/style.css` (or `css/style.css` from root).
+- Use the template at `posts/_template.html` when creating new blog posts.
+- Navigation must be consistent across all pages — when adding a category, update ALL files.
+
+## JavaScript
+
+- Do not use semicolons.
+- Always use arrow functions.
+- Keep JavaScript minimal; this is a static blog.
+
+## Categories
+
+The current categories are:
+- Development (`categories/development.html`)
+- Management (`categories/management.html`)
+- Fishing (`categories/fishing.html`)
+- Gaming (`categories/gaming.html`)
+- Misc (`categories/misc.html`)
+
+To add a new category:
+1. Create the category page in `categories/`
+2. Update the `<nav class="main-nav">` in ALL HTML files
+
+## File Naming
+
+- Use lowercase with hyphens for file names: `my-post-title.html`
+- Category slugs: `development`, `management`, `fishing`, `gaming`, `misc`
+
+## Content Guidelines
+
+- Post content goes inside `<div class="post-content">`
+- Use semantic HTML: `<article>`, `<header>`, `<main>`, `<footer>`
+- Use `<pre><code>` for code blocks
+- Use `<blockquote>` for quotes
+
+## Shell Scripts
+
+- Use POSIX-compliant shell only (no bashisms).
+- No bash-only features like `[[`, arrays, or `source`.
+

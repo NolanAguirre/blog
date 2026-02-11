@@ -1,0 +1,2 @@
+# TODO
+Alignment is a practice, not a state. People can be aligned, but that is temporary, in order to maintain alignment over time there must be process in place (As minimal as required) to maintain that alignment. It isn't one and done, peoples understandings will drift with time.

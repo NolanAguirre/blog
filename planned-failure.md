@@ -1,0 +1,2 @@
+# TODO
+If youre going to put a time bomb into code, make sure it blows up in a way that doesn't cascade, and that you can keep an eye on. Have a general plan for how it will fail and what will need to be fixed before the time comes.

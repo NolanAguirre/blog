@@ -1,0 +1,2 @@
+# TODO
+High level idea: Reduce the problem until there is no ambiguity. Most issues resolve to core CS problems, those are largely solved. If you keep things modular and simple, then you can implement a correct, robust solution to a problem, even if the problem changes as the solution is being programmed.

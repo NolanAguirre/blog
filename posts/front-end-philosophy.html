@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>On Front End Architecture - Nolan's Blog</title>
+  <meta name="description" content="The correct way to think about front end applications is what is the ideal experience for the user.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:wght@700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Shared Stylesheet - DO NOT add page-specific CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="site-title">Nolan's Blog</a>
+      
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.main-nav').classList.toggle('active')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <nav class="main-nav">
+        <a href="../index.html">Home</a>
+        <a href="../categories/development.html" class="active">Development</a>
+        <a href="../categories/management.html">Management</a>
+        <a href="../categories/fishing.html">Fishing</a>
+        <a href="../categories/gaming.html">Gaming</a>
+        <a href="../categories/misc.html">Misc</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="content">
+      <header class="post-header">
+        <h1>On Front End Architecture</h1>
+        <div class="post-meta">
+          <a href="../categories/development.html" class="post-category">Development</a>
+          <time datetime="2026-02-10">February 10, 2026</time>
+        </div>
+      </header>
+
+      <div class="post-content">
+        <blockquote>
+          <strong>Work in Progress</strong> — This post is still being written.
+        </blockquote>
+
+        <p>The correct way to think about front end applications is "What is the ideal experience for the user". I've seen too many developers from the outset consider technical limitations when approaching architectural decisions for the front end. These are not UI decisions, but how should I structure my code to be best suited to fulfill the ideal user experience.</p>
+        
+        <p>What is the ideal user experience? Well, hard to define the totality of that, but we do know 3 major ones at least: <strong>Visual consistency</strong>, <strong>Lively data</strong> and <strong>Responsiveness</strong>.</p>
+
+        <h2>Visual Consistency</h2>
+        <p>Visual consistency says we should probably share components, and put css colors in variables, it doesn't say anything about how things look but that they should probably be consistent.</p>
+
+        <h2>Lively Data</h2>
+        <p>Lively data means ideally every server update streams live to the user, no refresh, no user action required. Now this one needs to be broken down to solve because there are some constraints of the client server model that may or may not be worth it to work around.</p>
+
+        <h2>Responsiveness</h2>
+        <p>Responsiveness means that each network request is instant, including the initial html and css. We want everything to be loaded and actionable as quickly as possible. Once loaded the website should also be responsive in the sense of responding to user actions, but this feels a bit more like UX/design than architecture to me.</p>
+
+        <h2>The Tradeoff</h2>
+        <p>Now, there is a bit of an issue with lively data and responsiveness, these two are at opposing each other in trade offs. Anytime you go to the network there's the potential of causing a loading state and affecting responsiveness.</p>
+
+        <p>Luckily it is a solved problem through various means. Some non-exclusive examples are:</p>
+
+        <ul>
+          <li><strong>Websockets for live updates</strong> - Liveliest data, little to no responsiveness effect if implemented well. Much more costly overall than http.</li>
+          <li><strong>Polling</strong> - Straight forward, easy to retro-fit onto existing systems. Much more server side load for each client that necessary.</li>
+          <li><strong>Front end caching</strong> - Provides responsiveness, often used with other mechanisms. Data liveliness not handled, and sometimes impacted negatively.</li>
+          <li><strong>Optimistic responses</strong> - A subset of caching that works in relation to CUD of CRUD.</li>
+        </ul>
+
+        <h2>Abstractions</h2>
+        <p>So how do I handle this tradeoff? Abstractions!</p>
+
+        <p>The way I see it there are three main parts of the front end: the display, the state and the network. Each of these is such a separate concern from each other that it doesn't make sense to me to couple their implementation details.</p>
+
+        <p>To break out each part, the display is the component that actually shows the data, a trivial example:</p>
+
+        <pre><code>const User = ({name, age}) => {
+  return &lt;div className='user-card'&gt;
+    &lt;div&gt;{name}&lt;/div&gt;
+    &lt;div&gt;{age}&lt;/div&gt;
+  &lt;/div&gt;
+}</code></pre>
+
+        <p>The network is the literal network requests, this can include caching, optimistic responses, websockets, all the fun solutions mentioned before.</p>
+
+        <p>The state is tracking the users interactions within the website, the form data, what things on the page they have selected, what values are in dropdowns, this kind of code. Because this is a separate concern, the User component above should not store its own state, instead it should expect all data to be available upon render within props.</p>
+
+        <blockquote>
+          The clarity of opening a page and seeing the component hierarchy laid out as JSX is too appealing for me personally.
+        </blockquote>
+
+        <p>There are many other ways to factor this, I understand concerns with prop drilling and such, but the clarity of being able to read a page and understand its structure at a glance is worth the tradeoffs in my experience.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; 2026 Nolan's Blog</span>
+      <div class="footer-links">
+        <a href="#">RSS</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+

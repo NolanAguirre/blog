@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POST_TITLE - Nolan's Blog</title>
+  <meta name="description" content="POST_EXCERPT">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:wght@700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Shared Stylesheet - DO NOT add page-specific CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="site-title">Nolan's Blog</a>
+      
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.main-nav').classList.toggle('active')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <nav class="main-nav">
+        <a href="../index.html">Home</a>
+        <a href="../categories/development.html">Development</a>
+        <a href="../categories/management.html">Management</a>
+        <a href="../categories/fishing.html">Fishing</a>
+        <a href="../categories/gaming.html">Gaming</a>
+        <a href="../categories/misc.html">Misc</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="content">
+      <header class="post-header">
+        <h1>POST_TITLE</h1>
+        <div class="post-meta">
+          <a href="../categories/CATEGORY_SLUG.html" class="post-category">CATEGORY_NAME</a>
+          <time datetime="YYYY-MM-DD">MONTH DD, YYYY</time>
+        </div>
+      </header>
+
+      <div class="post-content">
+        <!-- Your post content goes here -->
+        <p>Start writing your post here...</p>
+        
+        <h2>Section Heading</h2>
+        <p>More content...</p>
+        
+        <blockquote>
+          A notable quote or callout.
+        </blockquote>
+        
+        <pre><code>// Code example
+const example = () => {
+  return 'hello'
+}</code></pre>
+        
+        <ul>
+          <li>List item one</li>
+          <li>List item two</li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; 2026 Nolan's Blog</span>
+      <div class="footer-links">
+        <a href="#">RSS</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+
