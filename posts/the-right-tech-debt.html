@@ -30,41 +30,78 @@
         <a href="../categories/development.html" class="active">Development</a>
         <a href="../categories/management.html">Management</a>
         <a href="../categories/fishing.html">Fishing</a>
-        <a href="../categories/gaming.html">Gaming</a>
-        <a href="../categories/misc.html">Misc</a>
+        <a href="../categories/resources.html">Resources</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <article class="content">
-      <header class="post-header">
-        <h1>The Right Tech Debt</h1>
-        <div class="post-meta">
-          <a href="../categories/development.html" class="post-category">Development</a>
-          <time datetime="2026-02-10">February 10, 2026</time>
-        </div>
-      </header>
-
-      <div class="post-content">
-        <blockquote>
-          <strong>Work in Progress</strong> — This post is still being written.
-        </blockquote>
-
-        <p>The premise is this: tech debt in implementation is far less painful than tech debt in interfaces. Changing interfaces incurs coordination and sync costs between two parts now, potentially cascading failures and complexities.</p>
-
-        <h2>Implementation vs Interface Debt</h2>
-        <p>When we talk about technical debt, not all debt is created equal. There's a crucial distinction between debt hidden inside a module (implementation debt) and debt that affects how components talk to each other (interface debt).</p>
-
-        <p>Implementation debt is contained. You can refactor the internals of a function, rewrite an algorithm, or restructure private data—all without touching anything else. The blast radius is small.</p>
-
-        <p>Interface debt is viral. Change a function signature, modify an API response, or rename a field, and suddenly you're coordinating across teams, updating multiple services, and hoping you found all the call sites.</p>
-
-        <h2>Strategic Debt</h2>
-        <p>This is a work in progress...</p>
+  <article class="content">
+    <header class="post-header">
+      <h1>The Right Tech Debt</h1>
+      <div class="post-meta">
+        <a href="../categories/development.html" class="post-category">Development</a>
+        <time datetime="2026-02-10">February 10, 2026</time>
       </div>
-    </article>
-  </main>
+    </header>
+
+    <div class="post-content">
+      <p>The premise is this: the right tech debt is debt with a small blast radius. Tech debt in implementation is far less painful than tech debt in interfaces, because implementation debt can usually be paid down locally. Interface debt creates coordination costs between multiple parts of the system, potentially cascading into failures, rewrites, and complexity across the codebase.</p>
+
+      <p>Technical debt is not just measured by how ugly the code looks. It is measured by how expensive the code is to change. The safest debt is local. The most dangerous debt is debt that forces unrelated parts of the system to move together.</p>
+
+      <h2>Implementation Debt Is Usually Contained</h2>
+
+      <p>When we talk about technical debt, not all debt is created equal. There is a crucial distinction between debt hidden inside a module and debt that affects how components talk to each other.</p>
+
+      <p>Implementation debt is contained. You can refactor the internals of a function, rewrite an algorithm, or restructure private data without touching anything else. The blast radius is small.</p>
+
+      <p>This kind of debt can still be annoying. It can still slow you down. It can still make a section of code unpleasant to work in. But it is usually repayable by one person, in one place, without requiring the rest of the system to coordinate around the change.</p>
+
+      <h2>Interface Debt Is Coordination Debt</h2>
+
+      <p>Interface debt is viral. Change a function signature, modify an API response, rename a field, change an event shape, or alter a database contract, and suddenly you are coordinating across call sites, services, tests, deployments, and sometimes teams.</p>
+
+      <p>This is where tech debt becomes expensive. The problem is not only that the code needs to change. The problem is that multiple parts of the system need to change together, and every extra dependency increases the chance that something gets missed.</p>
+
+      <p>Interface debt does not just make code harder to change. It makes people harder to coordinate.</p>
+
+      <h2>Tactical Tech Debt Secures the Future</h2>
+
+      <p>Tactical tech debt is a form of implementation tech debt that is acquired in order to ship fast without compromising the future. It does not stand in the way of iteration or refactoring. It is the best kind of tech debt to acquire.</p>
+
+      <p>The main example of this form of tech debt is debt that secures the future, or safely allows for velocity without forcing the cost of cleanup before the cleanup has value. The clearest example I can think of is implementing a new library function after a pattern has revealed itself, but not updating all code to use this new library immediately.</p>
+
+      <p>In doing this, you can use the library for new feature development, gain velocity, and secure the future without incurring the cost of refactoring the broader codebase. You have created the better path forward, but you have not forced the entire system to migrate all at once.</p>
+
+      <p>There are three core principles at work with this approach: "If it ain't broke, don't fix it", "secure the future", and "incremental refactor".</p>
+
+      <p>If you revisit areas of the codebase for new feature development or support, and they need to be updated to the new library function, then you update that code to leverage the library. The code was changing anyway, so the potential blast radius and testing for the change remain largely the same. You still need to validate the other code changes you made to that portion of the codebase, so you validate the update to the library function in passing.</p>
+
+      <p>This is the important distinction: you are not refusing to pay down debt. You are refusing to pay it down when the payment creates more risk than value. The better pattern exists, new work can use it, and old work can move over when it is already being touched.</p>
+
+      <h2>Some Boundaries Are Worth Abstracting Early</h2>
+
+      <p>the approach above is not universally applicable. Some changes do require a full migration. Updating database connections to use SSL, for example, might need every connection to move through the new path.</p>
+
+      <p>The kinds of changes that require this sort of full refactor should be abstracted from the beginning, even if the abstraction is just wrapping the default behavior in a pass-through function. By doing this, it enables you to make the change in one place and fully leverage the upside of abstracted code.</p>
+
+      <p>I would argue that most important I/O operations should be abstracted in this way. HTTP, DB, FS, queues, vendors, and several other interactions should be built on abstractions you control from the outset.</p>
+
+      <p>This does not need to be heavy. Taking the time to wrap these libraries in a function that you control is very lightweight, but it can massively pay off down the road. These are the boundaries where future policy changes tend to happen: SSL, retries, timeouts, tracing, auth, rate limits, error handling, testing, and operational behavior.</p>
+
+      <p>The goal is not abstraction for its own sake. The goal is to control the parts of the system where change will be expensive later.</p>
+
+      <h2>The Right Debt Has a Small Blast Radius</h2>
+
+      <p>The right tech debt lets you ship now without forcing future coordination across unrelated systems. It is local, repayable, and does not corrupt the interfaces other code depends on.</p>
+
+      <p>The wrong tech debt leaks into boundaries. It turns simple changes into coordinated migrations. It makes the system harder to move because too many parts need to move at the same time.</p>
+
+      <p>Implementation debt can often be lived with. Interface debt compounds. The difference is not cleanliness. The difference is blast radius.</p>
+    </div>
+  </article>
+</main>
 
   <footer class="site-footer">
     <div class="container">
