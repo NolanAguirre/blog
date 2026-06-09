@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dependency inversion at all levels - Nolan's Blog</title>
+  <meta name="description" content="Dependency inversion at all levels of the software stack.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:wght@700&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Shared Stylesheet - DO NOT add page-specific CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="site-title">Nolan's Blog</a>
+      
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.main-nav').classList.toggle('active')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <nav class="main-nav">
+        <a href="../index.html">Home</a>
+        <a href="../categories/development.html">Development</a>
+        <a href="../categories/management.html">Management</a>
+        <a href="../categories/fishing.html">Fishing</a>
+        <a href="../categories/resources.html">Resources</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="content">
+      <header class="post-header">
+        <h1>Dependency inversion at all levels</h1>
+        <div class="post-meta">
+          <a href="../categories/development.html" class="post-category">Development</a>
+          <time datetime="2026-06-08">June 08, 2026</time>
+        </div>
+      </header>
+
+      <div class="post-content">
+        <blockquote>
+          Dependency Inversion has a specific meaning in SOLID. This post uses it more loosely, as a lens for thinking about the direction of dependencies.
+        </blockquote>
+
+        <h2>The concept</h2>
+        <p>
+        Dependency inversion is a concept that comes from the land of object-oriented programming. My first exposure to it was from one of Uncle Bob's speeches on SOLID principles. This kicked off my thinking of the term in a broader context.
+        </p>
+        <p>
+        The basic idea within SOLID is that high-level code should not depend directly on low-level implementation details.
+        </p>
+        <p>
+        To me dependency inversion is just one example of a broader design move: making volatile implementation details depend on stable abstractions instead of the other way around. That idea shows up in classes, services, queues, APIs, and sometimes functions — but applying it blindly creates ceremony and over-engineering.
+        </p>
+
+        <h2>The class level</h2>
+        <p>This is the classic example. If you're writing OOP and don't know about SOLID principles, I'd highly recommend this article: <a href="https://objectmentor.com/resources/articles/Principles_and_Patterns.pdf">Robert C. Martin's original principles page</a>.</p>
+
+<pre><code>Worst:
+
+class ReportGenerator {
+  printToHpPrinter(report) {
+    // HP-specific printing logic
+  }
+
+  printToCanonPrinter(report) {
+    // Canon-specific printing logic
+  }
+}
+
+Bad:
+
+ReportGenerator ---depends on---> HpPrinter
+ReportGenerator ---depends on---> CanonPrinter
+
+Good:
+
+ReportGenerator ---depends on---> Printer interface <---implements--- HpPrinter
+                                                    <---implements--- CanonPrinter</code></pre>
+
+        <p>
+        In the worst version, the high-level business logic and the low-level printer details are mixed together in the same class. Moving printer-specific behavior into separate classes is better, but <code>ReportGenerator</code> still depends directly on concrete printer implementations.
+        </p>
+
+        <p>
+        The dependency-inverted version keeps the behavior the same: a report still gets printed by a real implementation. But the source-code dependency has changed direction. The business logic depends on a stable abstraction instead of directly depending on printer-specific implementation details.
+        </p>
+        
+        <p>
+          In non-OO languages, I would consider this the package or module level. For example, if you're integrating with a third-party payment provider, the core payment logic should depend on a small payment-provider contract instead of directly depending on Stripe, Adyen, or any other concrete provider. Each provider implementation should expose the same function names and arguments, as if it were implementing an interface.
+        </p>
+        <h2>The architecture level</h2>
+        <p>With how powerful dependency inversion is, what happens if we apply the same concept to software systems instead of just classes?</p>
+
+        <p>
+          This is one of my favorite things to do. Keeping systems loosely coupled makes it easier to iterate on one side of an abstraction while keeping the blast radius small.
+        </p>
+        <p>So, how does this OO principle look at the architecture level?</p>
+
+        <p>So you could have:</p>
+        <pre><code>Service One --Calls-> Service Two</code></pre>
+
+        <p>Technically, if Service One and Service Two share a message contract, then you have the same diagram as "good" from above, but that is changing levels down to the implementation level. I'd like to keep the dependency inversion more at the architecture level, so what does that look like?</p>
+
+        <pre><code>Service One --Queues Message-> Queue <-Pulls-- Service Two</code></pre>
+
+        <p>
+        The important shift is not merely that there is a queue. The important shift is that Service One no longer needs Service Two to be running. In the direct call version, Service Two being down means Service One either fails, retries, blocks, or has to carry all of that failure-handling logic itself.
+        </p>
+
+        <p>
+        With the queue in the middle, Service One can keep chugging along. The queue becomes the backpressure boundary between the systems. Service Two can be slow, down, overloaded, or mid-deploy, and Service One can still accept work and hand it off safely.
+        </p>
+
+        <p>
+        That is the architecture-level version of changing the dependency direction. Service One is no longer operationally dependent on Service Two. The two services still need the implementation-level dependency inversion of relying on a shared contract for code quality and maintainability.
+        </p>
+
+        <h2>The function level</h2>
+        <p>Now, admittedly, this is where the "Dependency Inversion" concept starts to fall into the realm of over-engineering. If you take the idea too literally in JavaScript, you could end up doing something like this:</p>
+<pre><code>import { EventEmitter } from 'node:events'
+
+const eventEmitter = new EventEmitter()
+
+function foo(x) {
+  eventEmitter.emit('bar', x + 1)
+}
+
+function bar(x) {
+  console.log('bar received:', x)
+}
+
+eventEmitter.on('bar', bar)
+
+foo(1)</code></pre>
+
+        <p>But, this is verbose. Technically foo is no longer dependent on bar, but at what cost? Additionally, imagine doing this with a date formatting function; that's just crazy.</p>
+        
+        <p>The function level is already the level where abstractions happen a lot; abstraction is the keystone of functions. You move the logic of some code into its own function so you can change the implementation without having to modify multiple call sites. The specific pattern of dependency inversion doesn't apply here.</p>
+
+        <p>I think the closest thing to dependency inversion I've encountered at the function level is something like Redux, and it's not strictly dependency inversion. I also largely think Redux is over-engineered; things approaching this level of abstraction are generally not what I pursue.</p>
+        
+        <p>Having functions with their arguments is the contract that dependency inversion seeks to enforce at a higher level; the function is the abstraction that is depended on, not the logic within.</p>
+
+        <h2>The opcode level</h2>
+        <p>
+        Could we keep going lower? What does dependency inversion look like at the opcode level?
+        </p>
+
+        <pre><code>ADD R1, R2</code></pre>
+
+        <p>
+        It doesn't. At some point the framing stops being useful. The CPU is not asking for an <code>IAddInstruction</code> abstraction.
+        </p>
+
+        <h2>The takeaway</h2>
+        <p>
+        The goal is not to invert every dependency. Any idea applied dogmatically to all things is problematic. The goal is to notice which dependencies are stable, which are volatile, and whether the current direction of dependency makes the system easier or harder to change.
+        </p>
+        
+        <p>
+        Sometimes that means an interface. Sometimes it means a queue. Sometimes it means passing behavior as an argument. And sometimes it means doing nothing, because the direct dependency is the right dependency.
+        </p>
+
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>&copy; 2026 Nolan's Blog</span>
+      <div class="footer-links">
+        <a href="#">RSS</a>
+        <a href="https://github.com/NolanAguirre">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
