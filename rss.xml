@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Nolan&apos;s Blog</title>
+    <link>https://nolanaguirre.github.io/blog/</link>
+    <description>Thoughts on computer science, management, fishing, gaming, and more.</description>
+    <item>
+      <title>Dependency inversion at all levels</title>
+      <link>https://nolanaguirre.github.io/blog/posts/dependency-inversion-at-all-levels.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/dependency-inversion-at-all-levels.html</guid>
+      <pubDate>Mon, 08 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Dependency inversion at all levels of the software stack.</description>
+    </item>
+    <item>
+      <title>Alignment as a Practice</title>
+      <link>https://nolanaguirre.github.io/blog/posts/alignment-as-a-practice.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/alignment-as-a-practice.html</guid>
+      <pubDate>Thu, 28 May 2026 00:00:00 GMT</pubDate>
+      <description>Alignment is a practice, not a state. People can be aligned, but that is temporary.</description>
+    </item>
+    <item>
+      <title>The Right Tech Debt</title>
+      <link>https://nolanaguirre.github.io/blog/posts/the-right-tech-debt.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/the-right-tech-debt.html</guid>
+      <pubDate>Wed, 27 May 2026 00:00:00 GMT</pubDate>
+      <description>Understanding when technical debt is a strategic choice versus an accident.</description>
+    </item>
+    <item>
+      <title>On Front End Architecture</title>
+      <link>https://nolanaguirre.github.io/blog/posts/front-end-philosophy.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/front-end-philosophy.html</guid>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <description>The correct way to think about front end applications is what is the ideal experience for the user.</description>
+    </item>
+    <item>
+      <title>Inline Spinner Recommendation</title>
+      <link>https://nolanaguirre.github.io/blog/posts/inline-spinner-recommendation.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/inline-spinner-recommendation.html</guid>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <description>Quick recommendation for the XPS Lazer Eye Micro Spin in natural shad.</description>
+    </item>
+    <item>
+      <title>Useful Links</title>
+      <link>https://nolanaguirre.github.io/blog/posts/useful-links.html</link>
+      <guid>https://nolanaguirre.github.io/blog/posts/useful-links.html</guid>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 GMT</pubDate>
+      <description>A collection of useful tools and websites I recommend.</description>
+    </item>
+  </channel>
+</rss>

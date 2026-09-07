@@ -8,7 +8,7 @@
 	services.auth.start services.auth.install \
 	ui.blog.start ui.blog.install \
 	ui.auth.start ui.auth.install \
-	db.deploy db.verify db.reset import-html
+	db.deploy db.verify db.reset import-html render
 
 help:
 	@echo "Usage: make [target]"
@@ -21,6 +21,7 @@ help:
 	@echo "  db.verify   Verify the SQLite schema"
 	@echo "  db.reset    Reset and redeploy the SQLite database"
 	@echo "  import-html Import live HTML into SQLite"
+	@echo "  render      Generate index.html, posts/, categories/, and rss.xml from SQLite"
 	@echo "  deploy      Guarded until filtered publish is implemented"
 	@echo "  clean       Remove backup and temp files"
 	@echo "  help        Show this help message"
@@ -91,6 +92,9 @@ db.reset:
 
 import-html: db.deploy
 	$(MAKE) -C services/blog import-html
+
+render:
+	$(MAKE) -C services/blog render
 
 # Create a new post from template
 # Usage: make new-post NAME=my-post-title

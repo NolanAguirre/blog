@@ -17,6 +17,21 @@ const MONTHS = {
   december: '12',
 }
 
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
 const stripTags = (html) => String(html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
 
 const decodeEntities = (text) => String(text || '')
@@ -52,6 +67,18 @@ const parseVisibleDate = (text) => {
 }
 
 const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))
+
+const formatVisibleDate = (iso) => {
+  if (!isIsoDate(iso)) {
+    throw new Error(`Invalid ISO date: ${iso}`)
+  }
+  const [year, month, day] = String(iso).split('-')
+  const monthName = MONTH_NAMES[Number(month) - 1]
+  if (!monthName) {
+    throw new Error(`Invalid ISO date: ${iso}`)
+  }
+  return `${monthName} ${Number(day)}, ${year}`
+}
 
 const slugFromHref = (href) => {
   if (!href || href.includes('CATEGORY_SLUG')) {
@@ -183,6 +210,7 @@ const parseCategoryPage = (html) => {
 }
 
 module.exports = {
+  formatVisibleDate,
   parseCategoriesFromNav,
   parseCategoryPage,
   parsePost,
