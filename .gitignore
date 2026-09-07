@@ -137,3 +137,17 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local tool artifacts
+services/nginx/logs/
+services/nginx/tmp/
+services/nginx/nginx.pid
+**/start.log
+db/*.sqlite
+db/*.sqlite-*
+db/sessions/
+**/env-dir/*/*_SECRET
+**/env-dir/*/*_TOKEN
+**/env-dir/*/*_API_KEY
+**/env-dir/*/*_PASSWORD
+

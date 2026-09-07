@@ -1,0 +1,14 @@
+{
+  "name": "blog",
+  "version": "0.1.0",
+  "description": "blog service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "private": true
+}

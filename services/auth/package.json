@@ -1,0 +1,14 @@
+{
+  "name": "auth",
+  "version": "0.1.0",
+  "description": "auth service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "private": true
+}
