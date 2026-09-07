@@ -211,6 +211,7 @@ const parseCategoryPage = (html) => {
 
 module.exports = {
   formatVisibleDate,
+  isIsoDate,
   parseCategoriesFromNav,
   parseCategoryPage,
   parsePost,
