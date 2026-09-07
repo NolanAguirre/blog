@@ -145,6 +145,7 @@ services/nginx/nginx.pid
 **/start.log
 db/*.sqlite
 db/*.sqlite-*
+db/sqitch.db
 db/sessions/
 **/env-dir/*/*_SECRET
 **/env-dir/*/*_TOKEN

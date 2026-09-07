@@ -7,18 +7,23 @@
 	services.blog.start services.blog.install \
 	services.auth.start services.auth.install \
 	ui.blog.start ui.blog.install \
-	ui.auth.start ui.auth.install
+	ui.auth.start ui.auth.install \
+	db.deploy db.verify db.reset import-html
 
 help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  start      Start nginx, APIs, and the writer UI (http://127.0.0.1:9417/)"
-	@echo "  install    Install service and UI dependencies"
-	@echo "  new-post   Create a new post (usage: make new-post NAME=my-post-title)"
-	@echo "  deploy     Guarded until filtered publish is implemented"
-	@echo "  clean      Remove backup and temp files"
-	@echo "  help       Show this help message"
+	@echo "  start       Start nginx, APIs, and the writer UI (http://127.0.0.1:9417/)"
+	@echo "  install     Install service and UI dependencies"
+	@echo "  new-post    Create a new post (usage: make new-post NAME=my-post-title)"
+	@echo "  db.deploy   Deploy the SQLite schema"
+	@echo "  db.verify   Verify the SQLite schema"
+	@echo "  db.reset    Reset and redeploy the SQLite database"
+	@echo "  import-html Import live HTML into SQLite"
+	@echo "  deploy      Guarded until filtered publish is implemented"
+	@echo "  clean       Remove backup and temp files"
+	@echo "  help        Show this help message"
 
 start:
 	@echo "Site:   http://127.0.0.1:9417/"
@@ -74,6 +79,18 @@ ui.auth.start:
 
 ui.auth.install:
 	$(MAKE) -C ui/auth install
+
+db.deploy:
+	$(MAKE) -C db/blog deploy
+
+db.verify:
+	$(MAKE) -C db/blog verify
+
+db.reset:
+	$(MAKE) -C db/blog reset
+
+import-html: db.deploy
+	$(MAKE) -C services/blog import-html
 
 # Create a new post from template
 # Usage: make new-post NAME=my-post-title
