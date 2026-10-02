@@ -1,51 +1,42 @@
 # Nolan's Blog
 
-A static HTML blog with shared styling across all pages.
+A local HTML writer that renders a static site into the repo root. GitHub Pages serves the generated tree at https://nolanaguirre.github.io/blog/.
 
-https://nolanaguirre.github.io/blog/index.html
+## Public tree at `./`
 
-## Structure
+`index.html` is the Pages entry. Also published:
 
+- `posts/*.html`
+- `categories/*.html`
+- `css/style.css`
+- `rss.xml`
+- `.nojekyll`
+
+Relative links are required under `/blog/`. Writer and APIs never run on Pages.
+
+Root `*.md` files are notes, not the publishing format.
+
+## Local authoring
+
+```sh
+make install
+make start
 ```
-blog/
-├── css/
-│   └── style.css          # Shared stylesheet (ALL pages use this)
-├── categories/
-│   ├── development.html
-│   ├── management.html
-│   ├── fishing.html
-│   ├── gaming.html
-│   └── misc.html
-├── posts/
-│   ├── _template.html     # Copy this to create new posts
-│   └── *.html             # Individual blog posts
-├── index.html             # Homepage with post listing
-└── README.md
+
+- Site: http://127.0.0.1:9090/
+- Writer: http://127.0.0.1:9090/admin/
+
+Use the writer for posts, categories, site settings, and Generate site.
+
+## Render / deploy
+
+```sh
+make render
+make deploy DRY_RUN=1
+make deploy
 ```
 
-## Creating a New Post
-
-1. Copy `posts/_template.html` to `posts/your-post-name.html`
-2. Replace the placeholder values:
-   - `POST_TITLE` → Your post title
-   - `POST_EXCERPT` → Brief description for meta tag
-   - `CATEGORY_SLUG` → One of: `development`, `management`, `fishing`, `gaming`, `misc`
-   - `CATEGORY_NAME` → Display name: `Development`, `Management`, `Fishing`, `Gaming`, `Misc`
-   - `YYYY-MM-DD` → ISO date format
-   - `MONTH DD, YYYY` → Display date format
-3. Write your content inside `<div class="post-content">`
-4. Add a link to the post on:
-   - `index.html` (in the posts list)
-   - The appropriate category page in `categories/`
-
-## Adding a New Category
-
-1. Create a new file in `categories/` (copy an existing one as template)
-2. Update the navigation in ALL existing HTML files:
-   - `index.html`
-   - All files in `categories/`
-   - All files in `posts/`
-   - `posts/_template.html`
+`make render` writes `./` from SQLite. `make deploy` renders, then force-pushes only the public allowlist to `gh-pages`. `make deploy DRY_RUN=1` lists files and does not push.
 
 ## Styling Rules
 
@@ -76,15 +67,6 @@ blog/
 - `.post-category` — Category badge
 - `.posts-list` — List of post previews
 - `.text-center`, `.text-muted` — Utility classes
-
-## Serving Locally
-
-Open `index.html` directly in a browser, or use a local server:
-
-```sh
-python3 -m http.server 8000
-# Then visit http://localhost:8000
-```
 
 ## License
 

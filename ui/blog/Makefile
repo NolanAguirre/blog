@@ -10,10 +10,10 @@ help:
 	@echo "  help     Show this help message"
 
 start:
-	../../scripts/run-with-env-dir ./env-dir npm run dev
+	../../scripts/multi-envdir ./env-dir npm run dev
 
 dev:
-	../../scripts/run-with-env-dir ./env-dir npm run dev
+	../../scripts/multi-envdir ./env-dir npm run dev
 
 install:
 	npm install

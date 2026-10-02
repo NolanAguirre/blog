@@ -1,0 +1,39 @@
+#!/bin/sh
+# Load env-dir/default, then overlay env-dir/$USER if present, then exec.
+# Selects env-dir/<ENV_USER|USER> as an overlay on default.
+# A leading ~/ (or a lone ~) in a value expands to $HOME so committed values
+# such as ~/lft stay portable.
+envdirpath="$1"
+
+shift
+
+if [ ! -d "${envdirpath}" ]
+then
+    echo "env-dir not found: ${envdirpath}" >&2
+    exit 2
+fi
+
+load_dir() {
+    dir="$1"
+    [ -d "${dir}" ] || return 0
+    for envfile in "${dir}"/*
+    do
+        [ -f "${envfile}" ] || continue
+        varname=$(basename "${envfile}")
+        varvalue=$(cat "${envfile}")
+        case "${varvalue}" in
+            "~") varvalue="${HOME}" ;;
+            "~/"*) varvalue="${HOME}/${varvalue#??}" ;;
+        esac
+        export "${varname}=${varvalue}"
+    done
+}
+
+load_dir "${envdirpath}/default"
+envdirname="${ENV_USER:-${USER}}"
+if [ -n "${envdirname}" ] && [ "${envdirpath}/${envdirname}" != "${envdirpath}/default" ]
+then
+    load_dir "${envdirpath}/${envdirname}"
+fi
+
+exec "$@"

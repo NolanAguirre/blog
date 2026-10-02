@@ -1,14 +1,15 @@
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="container">
       <a href="{{homeHref}}" class="site-title">{{siteTitle}}</a>
-      
-      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.main-nav').classList.toggle('active')">
-        <span></span>
-        <span></span>
-        <span></span>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" onclick="const nav = document.querySelector('.main-nav'); const open = nav.classList.toggle('active'); this.classList.toggle('open', open); this.setAttribute('aria-expanded', open ? 'true' : 'false')">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
       </button>
-      
-      <nav class="main-nav">
+
+      <nav class="main-nav" aria-label="Primary">
 {{{nav}}}
       </nav>
     </div>

@@ -1,0 +1,1 @@
+-- Verify blog:v1.001.0 on sqlite

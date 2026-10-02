@@ -1,0 +1,95 @@
+#!/bin/sh
+# Publish the public root tree to origin/gh-pages.
+# Usage: scripts/deploy-gh-pages
+# Set DRY_RUN=1 to list files without pushing.
+# Set KEEP_DIR=1 to leave the temp repo for inspection.
+
+set -e
+
+script_dir=$(dirname "$0")
+repo_root=$(dirname "$script_dir")
+repo_root=$(CDPATH= cd -- "$repo_root" && pwd)
+
+if [ ! -f "$repo_root/index.html" ]; then
+    echo "error: missing index.html" >&2
+    exit 1
+fi
+if [ ! -f "$repo_root/css/style.css" ]; then
+    echo "error: missing css/style.css" >&2
+    exit 1
+fi
+if [ ! -f "$repo_root/rss.xml" ]; then
+    echo "error: missing rss.xml" >&2
+    exit 1
+fi
+
+tmp=$(mktemp -d)
+list_file=$(mktemp)
+
+cleanup() {
+    rm -f "$list_file"
+    if [ -n "$KEEP_DIR" ]; then
+        echo "kept temp dir: $tmp" >&2
+    else
+        rm -rf "$tmp"
+    fi
+}
+trap cleanup EXIT INT TERM
+
+mkdir "$tmp/posts" "$tmp/categories" "$tmp/css"
+
+cp "$repo_root/index.html" "$tmp/index.html"
+cp "$repo_root/rss.xml" "$tmp/rss.xml"
+
+for f in "$repo_root/css/"*; do
+    [ -f "$f" ] || continue
+    cp "$f" "$tmp/css/"
+done
+
+for f in "$repo_root/posts/"*.html; do
+    [ -f "$f" ] || continue
+    name=$(basename "$f")
+    case "$name" in
+        _*) continue ;;
+    esac
+    cp "$f" "$tmp/posts/$name"
+done
+
+for f in "$repo_root/categories/"*.html; do
+    [ -f "$f" ] || continue
+    name=$(basename "$f")
+    cp "$f" "$tmp/categories/$name"
+done
+
+touch "$tmp/.nojekyll"
+
+( cd "$tmp" && find . -type f | sort ) > "$list_file"
+
+while IFS= read -r path; do
+    rel=${path#./}
+    case "$rel" in
+        *services*|*ui*|*db*|*scripts*|*node_modules*|Makefile)
+            echo "error: forbidden path in publish tree: $rel" >&2
+            exit 1
+            ;;
+    esac
+    echo "$rel"
+done < "$list_file"
+
+if [ "$DRY_RUN" = "1" ]; then
+    echo "dry run: not pushing"
+    exit 0
+fi
+
+origin=$(git -C "$repo_root" remote get-url origin)
+user_name=$(git -C "$repo_root" config user.name)
+user_email=$(git -C "$repo_root" config user.email)
+if [ -z "$user_name" ] || [ -z "$user_email" ]; then
+    echo "error: git user.name and user.email must be set in the main repo" >&2
+    exit 1
+fi
+
+git -C "$tmp" init
+git -C "$tmp" add .
+git -C "$tmp" -c "user.name=$user_name" -c "user.email=$user_email" commit -m "Publish static site"
+git -C "$tmp" push --force "$origin" HEAD:gh-pages

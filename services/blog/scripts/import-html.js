@@ -82,35 +82,45 @@ const upsert = (db, source) => {
 
   const upsertPost = db.prepare(`
     INSERT INTO posts (
-      slug, title, category_id, excerpt, body_html, published_on, published, updated_at
+      slug, title, excerpt, body_html, published_on, published, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(slug) DO UPDATE SET
       title = excluded.title,
-      category_id = excluded.category_id,
       excerpt = excluded.excerpt,
       body_html = excluded.body_html,
       published_on = excluded.published_on,
       published = excluded.published,
       updated_at = excluded.updated_at
   `)
+  const deleteJoins = db.prepare('DELETE FROM post_categories WHERE post_id = ?')
+  const insertJoin = db.prepare(
+    'INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)',
+  )
 
   source.posts.forEach((post) => {
     if (!post.publishedOn) {
       throw new Error(`Could not parse published_on for ${post.slug}`)
     }
-    if (!post.categorySlug || categoryIds[post.categorySlug] == null) {
+    const slugs = (post.categories || [])
+      .map((category) => category.slug)
+      .filter((slug) => slug && categoryIds[slug] != null)
+    if (slugs.length === 0) {
       throw new Error(`Could not resolve category for ${post.slug}`)
     }
     upsertPost.run(
       post.slug,
       post.title,
-      categoryIds[post.categorySlug],
       post.excerpt,
       post.bodyHtml,
       post.publishedOn,
       post.published,
     )
+    const row = db.prepare('SELECT id FROM posts WHERE slug = ?').get(post.slug)
+    deleteJoins.run(row.id)
+    slugs.forEach((slug) => {
+      insertJoin.run(row.id, categoryIds[slug])
+    })
   })
 }
 
@@ -148,7 +158,7 @@ const main = () => {
   const db = openDb()
   try {
     if (!tableExists(db, 'posts')) {
-      console.error('posts table is missing. Run `make db.deploy` first.')
+      console.error('posts table is missing. Run `make db.blog.deploy` first.')
       process.exit(1)
     }
 

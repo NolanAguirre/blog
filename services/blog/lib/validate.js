@@ -51,10 +51,40 @@ const requireIsoDate = (value, name, fallback) => {
   return date
 }
 
+const existingCategorySlugs = (existing) => {
+  if (Array.isArray(existing.categorySlugs)) {
+    return existing.categorySlugs
+  }
+  if (Array.isArray(existing.categories)) {
+    return existing.categories.map((category) => category.slug)
+  }
+  return undefined
+}
+
+const requireCategorySlugs = (value, fallback) => {
+  const slugs = value !== undefined ? value : fallback
+  if (!Array.isArray(slugs)) {
+    throw httpError(400, 'categorySlugs must be an array')
+  }
+  if (slugs.length === 0) {
+    throw httpError(400, 'categorySlugs is required')
+  }
+  const unique = []
+  const seen = new Set()
+  slugs.forEach((slug, index) => {
+    const next = requireSlug(slug, `categorySlugs[${index}]`)
+    if (!seen.has(next)) {
+      seen.add(next)
+      unique.push(next)
+    }
+  })
+  return unique
+}
+
 const validatePost = (fields, existing = {}) => ({
   slug: requireSlug(fields.slug ?? existing.slug),
   title: requireString(fields.title ?? existing.title, 'title'),
-  categorySlug: requireSlug(fields.categorySlug ?? existing.categorySlug, 'categorySlug'),
+  categorySlugs: requireCategorySlugs(fields.categorySlugs, existingCategorySlugs(existing)),
   excerpt: fields.excerpt !== undefined
     ? requireString(fields.excerpt, 'excerpt', { allowEmpty: true })
     : (existing.excerpt ?? ''),
@@ -95,7 +125,7 @@ const validatePreview = (fields) => ({
   title: fields.title !== undefined
     ? requireString(fields.title, 'title', { allowEmpty: true })
     : '',
-  categorySlug: requireSlug(fields.categorySlug, 'categorySlug'),
+  categorySlugs: requireCategorySlugs(fields.categorySlugs),
   excerpt: fields.excerpt !== undefined
     ? requireString(fields.excerpt, 'excerpt', { allowEmpty: true })
     : '',

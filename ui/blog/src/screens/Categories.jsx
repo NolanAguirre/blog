@@ -30,7 +30,7 @@ const CategoryRow = ({ category, index, total, busy, onMove, onSaved, onDeleted,
         description: draft.description,
         sortOrder: category.sortOrder,
       })
-      setStatus({ type: 'ok', text: `Saved ${draft.slug}` })
+      setStatus({ type: 'ok', text: `Saved category "${draft.name}"` })
       onSaved()
     } catch (err) {
       setStatus({ type: 'error', text: err.message })
@@ -45,7 +45,7 @@ const CategoryRow = ({ category, index, total, busy, onMove, onSaved, onDeleted,
     }
     try {
       await deleteCategory(category.slug)
-      setStatus({ type: 'ok', text: `Deleted ${category.slug}` })
+      setStatus({ type: 'ok', text: `Deleted category "${category.name}"` })
       onDeleted()
     } catch (err) {
       setStatus({ type: 'error', text: err.message })
@@ -71,30 +71,56 @@ const CategoryRow = ({ category, index, total, busy, onMove, onSaved, onDeleted,
       <td>
         <input
           type="text"
+          placeholder="Category description"
           value={draft.description}
           onChange={(event) => setDraft({ ...draft, description: event.target.value })}
         />
       </td>
-      <td>{category.postCount}</td>
-      <td className="row-actions">
-        <button type="button" disabled={busy || index === 0} onClick={() => onMove(index, -1)}>
-          Up
-        </button>
-        <button type="button" disabled={busy || index === total - 1} onClick={() => onMove(index, 1)}>
-          Down
-        </button>
-        <button type="button" disabled={saving} onClick={onSave}>
-          Save
-        </button>
-        <button
-          type="button"
-          className="danger"
-          disabled={category.postCount > 0}
-          title={category.postCount > 0 ? 'category still has posts' : 'Delete category'}
-          onClick={onDelete}
-        >
-          Delete
-        </button>
+      <td>
+        <span className="badge badge-count" title={`${category.postCount} posts in this category`}>
+          {category.postCount}
+        </span>
+      </td>
+      <td>
+        <div className="row-actions">
+          <button
+            type="button"
+            className="secondary btn-sm"
+            disabled={busy || index === 0}
+            onClick={() => onMove(index, -1)}
+            title="Move category up"
+            aria-label="Move up"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            className="secondary btn-sm"
+            disabled={busy || index === total - 1}
+            onClick={() => onMove(index, 1)}
+            title="Move category down"
+            aria-label="Move down"
+          >
+            ↓
+          </button>
+          <button
+            type="button"
+            className="btn-sm"
+            disabled={saving}
+            onClick={onSave}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            type="button"
+            className="danger btn-sm"
+            disabled={category.postCount > 0}
+            title={category.postCount > 0 ? 'Category has posts and cannot be deleted' : 'Delete category'}
+            onClick={onDelete}
+          >
+            Delete
+          </button>
+        </div>
       </td>
     </tr>
   )
@@ -135,16 +161,20 @@ export const Categories = ({ setStatus }) => {
 
   const onAdd = async (event) => {
     event.preventDefault()
+    if (!draft.name.trim() || !draft.slug.trim()) {
+      setStatus({ type: 'error', text: 'Category name and slug are required.' })
+      return
+    }
     setBusy(true)
     try {
       await createCategory({
-        slug: draft.slug,
-        name: draft.name,
-        description: draft.description,
+        slug: draft.slug.trim(),
+        name: draft.name.trim(),
+        description: draft.description.trim(),
       })
       setDraft(emptyDraft())
       setSlugTouched(false)
-      setStatus({ type: 'ok', text: `Added ${draft.slug}. Generate site to update nav.` })
+      setStatus({ type: 'ok', text: `Added category "${draft.name}". Generate site to update nav.` })
       await load()
     } catch (err) {
       setStatus({ type: 'error', text: err.message })
@@ -174,7 +204,7 @@ export const Categories = ({ setStatus }) => {
         description: b.description,
         sortOrder: a.sortOrder,
       })
-      setStatus({ type: 'ok', text: 'Category order updated. Generate site to update nav.' })
+      setStatus({ type: 'ok', text: 'Category order updated. Generate site to update navigation.' })
       await load()
     } catch (err) {
       setStatus({ type: 'error', text: err.message })
@@ -186,82 +216,108 @@ export const Categories = ({ setStatus }) => {
   return (
     <section className="page">
       <div className="page-header">
-        <h1>Categories</h1>
-        <p className="muted">Nav updates on the next Generate site or publish.</p>
+        <div className="page-title-group">
+          <h1>Categories</h1>
+          <span className="page-count-badge">
+            {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+          </span>
+        </div>
+        <p className="muted">Site navigation updates on the next "Generate site" or post publish.</p>
       </div>
 
-      <form className="panel form" onSubmit={onAdd}>
-        <h2>Add category</h2>
-        <label>
-          Name
-          <input
-            type="text"
-            value={draft.name}
-            onChange={(event) => {
-              const name = event.target.value
-              setDraft((current) => ({
-                ...current,
-                name,
-                slug: slugTouched ? current.slug : slugFromTitle(name),
-              }))
-            }}
-          />
-        </label>
-        <label>
-          Slug
-          <input
-            type="text"
-            value={draft.slug}
-            onChange={(event) => {
-              setSlugTouched(true)
-              setDraft({ ...draft, slug: event.target.value })
-            }}
-          />
-        </label>
-        <label className="span-2">
-          Description
-          <input
-            type="text"
-            value={draft.description}
-            onChange={(event) => setDraft({ ...draft, description: event.target.value })}
-          />
-        </label>
-        <div className="form-actions span-2">
-          <button type="submit" disabled={busy}>
-            Add
-          </button>
+      <div className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Add category</h2>
+            <div className="panel-description">Create a new category for grouping your blog posts.</div>
+          </div>
         </div>
-      </form>
 
-      {loading && <p className="muted">Loading categories…</p>}
+        <form className="form" onSubmit={onAdd}>
+          <label>
+            Name
+            <input
+              type="text"
+              placeholder="e.g. Technology"
+              value={draft.name}
+              onChange={(event) => {
+                const name = event.target.value
+                setDraft((current) => ({
+                  ...current,
+                  name,
+                  slug: slugTouched ? current.slug : slugFromTitle(name),
+                }))
+              }}
+            />
+          </label>
+
+          <label>
+            Slug
+            <input
+              type="text"
+              placeholder="e.g. technology"
+              value={draft.slug}
+              onChange={(event) => {
+                setSlugTouched(true)
+                setDraft({ ...draft, slug: event.target.value })
+              }}
+            />
+          </label>
+
+          <label className="span-2">
+            Description
+            <input
+              type="text"
+              placeholder="A brief description of this topic"
+              value={draft.description}
+              onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+            />
+          </label>
+
+          <div className="form-actions span-2">
+            <button type="submit" disabled={busy}>
+              {busy ? 'Adding…' : 'Add category'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {loading && (
+        <div className="app-loading">
+          <div className="spinner" />
+          <p>Loading categories…</p>
+        </div>
+      )}
 
       {!loading && (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Description</th>
-              <th>Posts</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category, index) => (
-              <CategoryRow
-                key={category.slug}
-                category={category}
-                index={index}
-                total={categories.length}
-                busy={busy}
-                onMove={onMove}
-                onSaved={load}
-                onDeleted={load}
-                setStatus={setStatus}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="data-table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Description</th>
+                <th>Posts</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category, index) => (
+                <CategoryRow
+                  key={category.slug}
+                  category={category}
+                  index={index}
+                  total={categories.length}
+                  busy={busy}
+                  onMove={onMove}
+                  onSaved={load}
+                  onDeleted={load}
+                  setStatus={setStatus}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   )

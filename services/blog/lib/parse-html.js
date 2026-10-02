@@ -122,12 +122,21 @@ const parsePost = (html, options) => {
   const categoryByName = options.categoryByName || {}
   const header = extractPostHeader(html)
   const title = decodeEntities(stripTags(firstMatch(header, /<h1>([\s\S]*?)<\/h1>/)))
-  const categoryTag = header.match(/<a\b[^>]*class="post-category"[^>]*>[\s\S]*?<\/a>/)
-  const categoryHref = categoryTag ? attr(categoryTag[0], 'href') : ''
-  const categoryName = categoryTag ? decodeEntities(stripTags(categoryTag[0])) : ''
-  const categorySlug = slugFromHref(categoryHref)
-    || categoryByName[categoryName.toLowerCase()]
-    || null
+  const categoryTags = header.match(/<a\b[^>]*class="post-category"[^>]*>[\s\S]*?<\/a>/g) || []
+  const categories = []
+  const seenSlugs = new Set()
+  categoryTags.forEach((tag) => {
+    const categoryHref = attr(tag, 'href')
+    const categoryName = decodeEntities(stripTags(tag))
+    const categorySlug = slugFromHref(categoryHref)
+      || categoryByName[categoryName.toLowerCase()]
+      || null
+    if (!categorySlug || seenSlugs.has(categorySlug)) {
+      return
+    }
+    seenSlugs.add(categorySlug)
+    categories.push({ slug: categorySlug, name: categoryName })
+  })
   const timeTag = header.match(/<time\b[^>]*>[\s\S]*?<\/time>/)
   const datetime = timeTag ? attr(timeTag[0], 'datetime') : ''
   const visibleDate = timeTag ? stripTags(timeTag[0]) : ''
@@ -140,7 +149,7 @@ const parsePost = (html, options) => {
   const published = hasTemplateToken([
     title,
     metaExcerpt,
-    categoryHref,
+    ...categoryTags.map((tag) => attr(tag, 'href')),
     datetime,
     visibleDate,
   ]) ? 0 : 1
@@ -148,8 +157,7 @@ const parsePost = (html, options) => {
   return {
     slug,
     title,
-    categoryName,
-    categorySlug,
+    categories,
     publishedOn,
     datetime,
     visibleDate,

@@ -1,7 +1,7 @@
 const http = require('node:http')
 
 const host = process.env.HOST || '127.0.0.1'
-const port = Number(process.env.PORT || 9419)
+const port = Number(process.env.PORT || 6301)
 
 const sendJson = (res, status, body) => {
   const payload = JSON.stringify(body)

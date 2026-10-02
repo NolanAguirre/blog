@@ -17,7 +17,7 @@ import { slugFromTitle, todayUtc } from '../slug.js'
 const emptyForm = () => ({
   title: '',
   slug: '',
-  categorySlug: '',
+  categorySlugs: [],
   publishedOn: todayUtc(),
   excerpt: '',
   published: 0,
@@ -27,7 +27,7 @@ const emptyForm = () => ({
 const toForm = (post) => ({
   title: post.title ?? '',
   slug: post.slug ?? '',
-  categorySlug: post.categorySlug ?? '',
+  categorySlugs: (post.categories || []).map((category) => category.slug),
   publishedOn: post.publishedOn ?? todayUtc(),
   excerpt: post.excerpt ?? '',
   published: post.published === 1 ? 1 : 0,
@@ -110,13 +110,13 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
   }, [isNew, slug, setStatus])
 
   useEffect(() => {
-    if (!form.categorySlug) {
+    if (form.categorySlugs.length === 0) {
       return
     }
     const id = window.setTimeout(() => {
       const fields = {
         title: form.title,
-        categorySlug: form.categorySlug,
+        categorySlugs: form.categorySlugs,
         excerpt: form.excerpt,
         bodyHtml: form.bodyHtml,
         publishedOn: form.publishedOn,
@@ -137,7 +137,7 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
   }, [
     form.title,
     form.slug,
-    form.categorySlug,
+    form.categorySlugs,
     form.publishedOn,
     form.excerpt,
     form.bodyHtml,
@@ -253,21 +253,78 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
 
   if (loading) {
     return (
-      <section className="page">
-        <p className="muted">Loading post…</p>
+      <section className="page editor-page">
+        <div className="app-loading">
+          <div className="spinner" />
+          <p>Loading post…</p>
+        </div>
       </section>
     )
   }
 
   return (
     <section className="page editor-page">
-      <div className="page-header">
-        <h1>{heading}</h1>
-        <p className="muted">
-          {form.published === 1
-            ? 'Published posts are written to the public site on Publish or Generate site.'
-            : 'Drafts stay in the database until you publish.'}
-        </p>
+      <div className="editor-action-bar">
+        <div className="editor-action-left">
+          <button
+            type="button"
+            className="editor-back-link"
+            onClick={() => navigate('/')}
+            title="Return to posts list"
+          >
+            ← Posts
+          </button>
+          <span className="editor-heading">{heading}</span>
+          <span className={`badge ${form.published === 1 ? 'badge-published' : 'badge-draft'}`}>
+            <span className="badge-dot" />
+            {form.published === 1 ? 'Published' : 'Draft'}
+          </span>
+          {dirty && (
+            <span className="muted" title="Unsaved changes">
+              • Unsaved
+            </span>
+          )}
+        </div>
+
+        <div className="editor-action-right">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onSave}
+          >
+            {busy ? 'Saving…' : 'Save'}
+          </button>
+
+          {form.published === 1 ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              disabled={busy}
+              onClick={onUnpublish}
+            >
+              Unpublish
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onPublish}
+            >
+              Publish
+            </button>
+          )}
+
+          {!isNew && (
+            <button
+              type="button"
+              className="danger"
+              disabled={busy}
+              onClick={onDelete}
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
 
       <form
@@ -281,14 +338,17 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
           Title
           <input
             type="text"
+            placeholder="Post title"
             value={form.title}
             onChange={(event) => patch({ title: event.target.value })}
           />
         </label>
+
         <label>
           Slug
           <input
             type="text"
+            placeholder="post-url-slug"
             value={form.slug}
             onChange={(event) => {
               setSlugTouched(true)
@@ -296,20 +356,26 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
             }}
           />
         </label>
-        <label>
-          Category
-          <select
-            value={form.categorySlug}
-            onChange={(event) => patch({ categorySlug: event.target.value })}
-          >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category.slug} value={category.slug}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
+
+        <div className="checkbox-group">
+          <span>Categories</span>
+          {categories.map((category) => (
+            <label key={category.slug} className="checkbox">
+              <input
+                type="checkbox"
+                checked={form.categorySlugs.includes(category.slug)}
+                onChange={(event) => {
+                  const next = event.target.checked
+                    ? [...form.categorySlugs, category.slug]
+                    : form.categorySlugs.filter((slug) => slug !== category.slug)
+                  patch({ categorySlugs: next })
+                }}
+              />
+              {category.name}
+            </label>
+          ))}
+        </div>
+
         <label>
           Date
           <input
@@ -318,60 +384,56 @@ export const PostEditor = ({ slug, isNew, navigate, setStatus }) => {
             onChange={(event) => patch({ publishedOn: event.target.value })}
           />
         </label>
+
         <label className="span-2">
           Excerpt
           <textarea
             className="excerpt"
             rows="3"
+            placeholder="A short summary for previews and RSS…"
             value={form.excerpt}
             onChange={(event) => patch({ excerpt: event.target.value })}
           />
         </label>
-        <label className="checkbox">
+
+        <label className="checkbox span-2">
           <input
             type="checkbox"
             checked={form.published === 1}
             onChange={(event) => patch({ published: event.target.checked ? 1 : 0 })}
           />
-          Published
+          Published immediately on save
         </label>
-        <div className="form-actions span-2">
-          <button type="submit" disabled={busy}>
-            Save
-          </button>
-          {form.published === 1 ? (
-            <button type="button" disabled={busy} onClick={onUnpublish}>
-              Unpublish
-            </button>
-          ) : (
-            <button type="button" disabled={busy} onClick={onPublish}>
-              Publish
-            </button>
-          )}
-          {!isNew && (
-            <button type="button" className="danger" disabled={busy} onClick={onDelete}>
-              Delete
-            </button>
-          )}
-        </div>
       </form>
 
       <div className="editor-split">
-        <label className="body-editor">
-          Body HTML
+        <div className="body-editor">
+          <div className="body-editor-header">
+            <span>Body HTML</span>
+            <span>HTML / Rich Text</span>
+          </div>
           <textarea
             value={form.bodyHtml}
             onChange={(event) => patch({ bodyHtml: event.target.value })}
             spellCheck="false"
+            placeholder="Write post content in HTML..."
           />
-        </label>
+        </div>
+
         <div className="preview-pane">
-          <div className="preview-label">Live preview</div>
+          <div className="preview-pane-header">
+            <span>Live preview</span>
+            <span>Desktop</span>
+          </div>
+
           <StatusBanner status={previewError ? { type: 'error', text: previewError } : null} />
-          {form.categorySlug ? (
+
+          {form.categorySlugs.length > 0 ? (
             <PreviewFrame html={previewHtml} />
           ) : (
-            <p className="muted">Pick a category to preview.</p>
+            <div className="preview-placeholder">
+              <p>Select at least one category to render live preview.</p>
+            </div>
           )}
         </div>
       </div>

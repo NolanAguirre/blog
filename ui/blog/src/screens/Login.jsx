@@ -22,36 +22,58 @@ export const Login = ({ onSuccess, status, setStatus }) => {
 
   return (
     <div className="login-page">
-      <h1>Writer</h1>
-      <p className="muted">Local authoring login</p>
-      <StatusBanner status={status} />
-      <form className="panel form" onSubmit={onSubmit}>
-        <label>
-          Username
-          <input
-            type="text"
-            name="username"
-            autoComplete="username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={busy}>
+      <div className="login-card">
+        <div className="login-header">
+          <div className="login-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z" />
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+              <path d="M2 2l7.586 7.586" />
+              <circle cx="11" cy="11" r="2" />
+            </svg>
+          </div>
+          <h1 className="login-title">Writer</h1>
+          <p className="login-subtitle">Sign in to edit and publish your blog</p>
+        </div>
+
+        <StatusBanner status={status} onDismiss={() => setStatus(null)} />
+
+        <form className="login-form" onSubmit={onSubmit}>
+          <label>
+            Username
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              placeholder="Username"
+              required
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="login-submit-btn"
+            disabled={busy}
+          >
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

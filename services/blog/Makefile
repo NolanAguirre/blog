@@ -11,13 +11,13 @@ help:
 	@echo "  help         Show this help message"
 
 start:
-	../../scripts/run-with-env-dir ./env-dir npm start
+	../../scripts/multi-envdir ./env-dir npm start
 
 install:
 	npm install
 
 import-html:
-	FORCE="$(FORCE)" ../../scripts/run-with-env-dir ./env-dir node scripts/import-html.js
+	FORCE="$(FORCE)" ../../scripts/multi-envdir ./env-dir node scripts/import-html.js
 
 render:
-	../../scripts/run-with-env-dir ./env-dir node scripts/render.js
+	../../scripts/multi-envdir ./env-dir node scripts/render.js

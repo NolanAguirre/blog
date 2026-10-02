@@ -62,7 +62,12 @@ const App = () => {
   }
 
   if (session === null) {
-    return <div className="app-loading">Loading…</div>
+    return (
+      <div className="app-loading">
+        <div className="spinner" />
+        <p>Loading Writer…</p>
+      </div>
+    )
   }
 
   if (!session) {
@@ -85,20 +90,47 @@ const App = () => {
   return (
     <div className="app">
       <header className="shell">
-        <nav className="shell-nav" aria-label="Writer">
+        <div className="shell-brand-group">
+          <div className="shell-brand-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z" />
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+              <path d="M2 2l7.586 7.586" />
+              <circle cx="11" cy="11" r="2" />
+            </svg>
+          </div>
           <span className="shell-brand">Writer</span>
+          <span className="shell-badge">Blog Admin</span>
+        </div>
+
+        <nav className="shell-nav" aria-label="Writer navigation">
           <NavLink to="/" current={navPath} onNavigate={navigate}>Posts</NavLink>
           <NavLink to="/categories" current={navPath} onNavigate={navigate}>Categories</NavLink>
           <NavLink to="/settings" current={navPath} onNavigate={navigate}>Settings</NavLink>
         </nav>
+
         <div className="shell-actions">
-          <button type="button" disabled={rendering} onClick={generateSite}>
+          <button
+            type="button"
+            disabled={rendering}
+            onClick={generateSite}
+            title="Render all HTML templates to public files"
+          >
             {rendering ? 'Generating…' : 'Generate site'}
           </button>
-          <a href="/">View site</a>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            title="Open blog in a new tab"
+          >
+            View site ↗
+          </a>
         </div>
       </header>
-      <StatusBanner status={status} />
+
+      <StatusBanner status={status} onDismiss={() => setStatusStable(null)} />
+
       {route.name === 'list' && (
         <PostList navigate={navigate} setStatus={setStatusStable} />
       )}

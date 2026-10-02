@@ -16,11 +16,11 @@ const {
 } = require('./lib/validate')
 
 const host = process.env.HOST || '127.0.0.1'
-const port = Number(process.env.PORT || 9418)
+const port = Number(process.env.PORT || 6300)
 const repoRoot = path.resolve(__dirname, '../..')
 
 if (process.env.DB_PATH && !dbFileExists()) {
-  console.warn(`DB_PATH ${process.env.DB_PATH} does not exist; run make db.deploy`)
+  console.warn(`DB_PATH ${process.env.DB_PATH} does not exist; run make db.blog.deploy`)
 }
 
 const withDb = (handler) => async (req, res, params) => {
@@ -190,14 +190,21 @@ const routes = [
     path: '/api/preview',
     handler: withDb(async (req, res, _params, db) => {
       const fields = validatePreview(await readJson(req))
-      const category = store.getCategory(db, fields.categorySlug)
-      if (!category) {
-        throw httpError(400, 'categorySlug does not exist')
-      }
+      const categories = fields.categorySlugs.map((slug) => {
+        const category = store.getCategory(db, slug)
+        if (!category) {
+          throw httpError(400, 'categorySlug does not exist')
+        }
+        return { slug: category.slug, name: category.name, sortOrder: category.sortOrder }
+      })
+      categories.sort((a, b) => a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug))
       const site = loadSite(db)
       sendHtml(res, 200, renderPost(site, {
         ...fields,
-        categoryName: category.name,
+        categories: categories.map((category) => ({
+          slug: category.slug,
+          name: category.name,
+        })),
       }))
     }),
   },

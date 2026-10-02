@@ -147,8 +147,10 @@ db/*.sqlite
 db/*.sqlite-*
 db/sqitch.db
 db/sessions/
-**/env-dir/*/*_SECRET
-**/env-dir/*/*_TOKEN
-**/env-dir/*/*_API_KEY
-**/env-dir/*/*_PASSWORD
+# personal env-dir overlays stay local; default is committed
+**/env-dir/*
+!**/env-dir/default/
+!**/env-dir/default/**
 
+
+.cursor/plans

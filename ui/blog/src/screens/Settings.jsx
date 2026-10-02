@@ -66,7 +66,7 @@ export const Settings = ({ setStatus }) => {
         githubUrl: data.settings.githubUrl,
         footerYear: data.settings.footerYear,
       })
-      setStatus({ type: 'ok', text: 'Settings saved. Generate site to write the public pages.' })
+      setStatus({ type: 'ok', text: 'Settings saved. Generate site to write public pages.' })
     } catch (err) {
       setStatus({ type: 'error', text: err.message })
     } finally {
@@ -77,7 +77,10 @@ export const Settings = ({ setStatus }) => {
   if (loading) {
     return (
       <section className="page">
-        <p className="muted">Loading settings…</p>
+        <div className="app-loading">
+          <div className="spinner" />
+          <p>Loading settings…</p>
+        </div>
       </section>
     )
   }
@@ -85,55 +88,100 @@ export const Settings = ({ setStatus }) => {
   return (
     <section className="page">
       <div className="page-header">
-        <h1>Site settings</h1>
-        <p className="muted">Save here, then Generate site to update the public HTML.</p>
+        <div>
+          <h1>Site settings</h1>
+          <p className="muted">Configure site metadata, home text, and external links.</p>
+        </div>
+        <button
+          type="submit"
+          form="site-settings-form"
+          disabled={busy}
+        >
+          {busy ? 'Saving…' : 'Save settings'}
+        </button>
       </div>
 
-      <form className="panel form" onSubmit={onSave}>
-        <label>
-          Title
-          <input
-            type="text"
-            value={form.title}
-            onChange={(event) => patch({ title: event.target.value })}
-          />
-        </label>
-        <label>
-          Footer year
-          <input
-            type="number"
-            step="1"
-            value={form.footerYear}
-            onChange={(event) => patch({ footerYear: event.target.value })}
-          />
-        </label>
-        <label className="span-2">
-          Tagline
-          <input
-            type="text"
-            value={form.tagline}
-            onChange={(event) => patch({ tagline: event.target.value })}
-          />
-        </label>
-        <label className="span-2">
-          GitHub URL
-          <input
-            type="url"
-            value={form.githubUrl}
-            onChange={(event) => patch({ githubUrl: event.target.value })}
-          />
-        </label>
-        <label className="span-2">
-          Welcome
-          <textarea
-            rows="5"
-            value={form.welcome}
-            onChange={(event) => patch({ welcome: event.target.value })}
-          />
-        </label>
-        <div className="form-actions span-2">
+      <form id="site-settings-form" className="settings-grid" onSubmit={onSave}>
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h2>Site identity</h2>
+            <p>Main blog title and tagline appearing in the header and metadata.</p>
+          </div>
+
+          <div className="form">
+            <label>
+              Site title
+              <input
+                type="text"
+                placeholder="e.g. Nolan's Blog"
+                value={form.title}
+                onChange={(event) => patch({ title: event.target.value })}
+              />
+            </label>
+
+            <label>
+              Footer copyright year
+              <input
+                type="number"
+                step="1"
+                value={form.footerYear}
+                onChange={(event) => patch({ footerYear: event.target.value })}
+              />
+            </label>
+
+            <label className="span-2">
+              Tagline
+              <input
+                type="text"
+                placeholder="A short subtitle for your site"
+                value={form.tagline}
+                onChange={(event) => patch({ tagline: event.target.value })}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h2>Homepage welcome</h2>
+            <p>Introductory paragraph shown at the top of the homepage.</p>
+          </div>
+
+          <div>
+            <label>
+              Welcome message
+              <textarea
+                rows="4"
+                placeholder="Thoughts on software engineering, architecture, and technology…"
+                value={form.welcome}
+                onChange={(event) => patch({ welcome: event.target.value })}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <h2>Links & social</h2>
+            <p>External links displayed in your blog header or footer.</p>
+          </div>
+
+          <div className="form">
+            <label className="span-2">
+              GitHub profile URL
+              <input
+                type="url"
+                placeholder="https://github.com/username"
+                value={form.githubUrl}
+                onChange={(event) => patch({ githubUrl: event.target.value })}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="form-actions">
           <button type="submit" disabled={busy}>
-            Save
+            {busy ? 'Saving…' : 'Save settings'}
           </button>
         </div>
       </form>

@@ -4,11 +4,13 @@ export const PreviewFrame = ({ html }) => {
   const srcDoc = html ? withPreviewBase(html) : ''
 
   return (
-    <iframe
-      className="preview-frame"
-      title="Post preview"
-      sandbox=""
-      srcDoc={srcDoc}
-    />
+    <div className="preview-frame-container">
+      <iframe
+        className="preview-frame"
+        title="Post preview"
+        sandbox=""
+        srcDoc={srcDoc}
+      />
+    </div>
   )
 }

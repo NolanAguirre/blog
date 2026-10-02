@@ -17,27 +17,32 @@ const templates = {
 }
 
 const HOME_DISCLAIMER = `
-      <blockquote>
+      <p class="site-note">
         This blog is written with AI as an editor. The core ideas are my own, and I keep my own phrasing as much as possible. I mainly use AI to organize my thoughts into sections and to fix spelling and grammar.
-      </blockquote>
+      </p>
 
 `
 
-const INDEX_ITEM = `        <li class="post-preview">
-          <h2><a href="{{postHref}}">{{title}}</a></h2>
-          <div class="post-meta">
-            <a href="{{categoryHref}}" class="post-category">{{categoryName}}</a>
-            <time datetime="{{publishedOn}}">{{visibleDate}}</time>
-          </div>
-          <p class="post-excerpt">{{excerpt}}</p>
+const INDEX_ITEM = `        <li>
+          <article class="post-preview">
+            <div class="post-meta">
+              {{{categoryLinks}}}
+              <time datetime="{{publishedOn}}">{{visibleDate}}</time>
+            </div>
+            <h2><a href="{{postHref}}">{{title}}</a></h2>
+            <p class="post-excerpt">{{excerpt}}</p>
+          </article>
         </li>`
 
-const CATEGORY_ITEM = `        <li class="post-preview">
-          <h2><a href="{{postHref}}">{{title}}</a></h2>
-          <div class="post-meta">
-            <time datetime="{{publishedOn}}">{{visibleDate}}</time>
-          </div>
-          <p class="post-excerpt">{{excerpt}}</p>
+const CATEGORY_ITEM = `        <li>
+          <article class="post-preview">
+            <div class="post-meta">
+              {{{categoryLinks}}}
+              <time datetime="{{publishedOn}}">{{visibleDate}}</time>
+            </div>
+            <h2><a href="{{postHref}}">{{title}}</a></h2>
+            <p class="post-excerpt">{{excerpt}}</p>
+          </article>
         </li>`
 
 const tableExists = (db, name) => {
@@ -50,7 +55,7 @@ const tableExists = (db, name) => {
 const loadSite = (db) => {
   const missing = ['site_settings', 'categories', 'posts'].filter((name) => !tableExists(db, name))
   if (missing.length > 0) {
-    throw new Error(`missing tables: ${missing.join(', ')}. Run \`make db.deploy && make import-html\``)
+    throw new Error(`missing tables: ${missing.join(', ')}. Run \`make db.blog.deploy && make import-html\``)
   }
 
   const settings = db.prepare(`
@@ -59,7 +64,7 @@ const loadSite = (db) => {
     WHERE id = 1
   `).get()
   if (!settings) {
-    throw new Error('site_settings is empty. Run `make db.deploy && make import-html`')
+    throw new Error('site_settings is empty. Run `make db.blog.deploy && make import-html`')
   }
 
   const categories = db.prepare(`
@@ -68,35 +73,70 @@ const loadSite = (db) => {
     ORDER BY sort_order, slug
   `).all()
   if (categories.length === 0) {
-    throw new Error('categories is empty. Run `make db.deploy && make import-html`')
+    throw new Error('categories is empty. Run `make db.blog.deploy && make import-html`')
   }
 
   const posts = db.prepare(`
     SELECT
+      p.id,
       p.slug,
       p.title,
       p.excerpt,
       p.body_html AS bodyHtml,
-      p.published_on AS publishedOn,
-      c.slug AS categorySlug,
-      c.name AS categoryName
+      p.published_on AS publishedOn
     FROM posts p
-    JOIN categories c ON c.id = p.category_id
     WHERE p.published = 1
     ORDER BY p.published_on DESC, p.slug
   `).all()
 
-  return { settings, categories, posts }
+  const memberships = db.prepare(`
+    SELECT
+      pc.post_id AS postId,
+      c.slug,
+      c.name
+    FROM post_categories pc
+    JOIN categories c ON c.id = pc.category_id
+    JOIN posts p ON p.id = pc.post_id
+    WHERE p.published = 1
+    ORDER BY c.sort_order, c.slug
+  `).all()
+
+  const categoriesByPostId = new Map()
+  memberships.forEach((row) => {
+    const list = categoriesByPostId.get(row.postId) || []
+    list.push({ slug: row.slug, name: row.name })
+    categoriesByPostId.set(row.postId, list)
+  })
+
+  return {
+    settings,
+    categories,
+    posts: posts.map((post) => {
+      const { id, ...rest } = post
+      return {
+        ...rest,
+        categories: categoriesByPostId.get(id) || [],
+      }
+    }),
+  }
 }
 
 const href = (prefix, ...parts) => `${prefix}${parts.join('')}`
 
+const activeSet = (active) => {
+  if (Array.isArray(active)) {
+    return new Set(active)
+  }
+  return new Set(active == null ? [] : [active])
+}
+
 const renderNav = (site, prefix, active) => {
-  const homeClass = active === 'home' ? ' class="active"' : ''
+  const actives = activeSet(active)
+  const homeClass = actives.has('home') ? ' class="active"' : ''
   const links = [
     `<a href="${escapeHtml(href(prefix, 'index.html'))}"${homeClass}>Home</a>`,
     ...site.categories.map((category) => {
-      const cls = active === category.slug ? ' class="active"' : ''
+      const cls = actives.has(category.slug) ? ' class="active"' : ''
       return `<a href="${escapeHtml(href(prefix, 'categories/', category.slug, '.html'))}"${cls}>${escapeHtml(category.name)}</a>`
     }),
   ]
@@ -108,6 +148,7 @@ const renderChrome = (site, prefix, options) => ({
     title: options.title,
     description: options.description,
     stylesheetHref: href(prefix, 'css/style.css'),
+    faviconHref: href(prefix, 'favicon.svg'),
   }),
   header: interpolate(templates.header, {
     homeHref: href(prefix, 'index.html'),
@@ -122,11 +163,16 @@ const renderChrome = (site, prefix, options) => ({
   }),
 })
 
+const renderCategoryLinks = (prefix, categories) => (categories || [])
+  .map((category) => (
+    `<a href="${escapeHtml(href(prefix, 'categories/', category.slug, '.html'))}" class="post-category">${escapeHtml(category.name)}</a>`
+  ))
+  .join('\n              ')
+
 const listingVars = (prefix, post) => ({
   postHref: href(prefix, 'posts/', post.slug, '.html'),
-  categoryHref: href(prefix, 'categories/', post.categorySlug, '.html'),
+  categoryLinks: renderCategoryLinks(prefix, post.categories),
   title: post.title,
-  categoryName: post.categoryName,
   publishedOn: post.publishedOn,
   visibleDate: formatVisibleDate(post.publishedOn),
   excerpt: post.excerpt,
@@ -174,7 +220,9 @@ const renderCategory = (site, category) => renderListPage(site, '../', {
   active: category.slug,
   heading: category.name,
   intro: category.description,
-  posts: site.posts.filter((post) => post.categorySlug === category.slug),
+  posts: site.posts.filter((post) => (
+    post.categories.some((item) => item.slug === category.slug)
+  )),
   itemTemplate: CATEGORY_ITEM,
 })
 
@@ -183,15 +231,14 @@ const renderPost = (site, post) => {
   const chrome = renderChrome(site, prefix, {
     title: `${post.title} - ${site.settings.title}`,
     description: post.excerpt,
-    active: post.categorySlug,
+    active: (post.categories || []).map((category) => category.slug),
   })
   return interpolate(templates.post, {
     head: chrome.head,
     header: chrome.header,
     footer: chrome.footer,
     title: post.title,
-    categoryHref: href(prefix, 'categories/', post.categorySlug, '.html'),
-    categoryName: post.categoryName,
+    categoryLinks: renderCategoryLinks(prefix, post.categories),
     publishedOn: post.publishedOn,
     visibleDate: formatVisibleDate(post.publishedOn),
     bodyHtml: post.bodyHtml,

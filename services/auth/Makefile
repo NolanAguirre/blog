@@ -9,7 +9,7 @@ help:
 	@echo "  help     Show this help message"
 
 start:
-	../../scripts/run-with-env-dir ./env-dir npm start
+	../../scripts/multi-envdir ./env-dir npm start
 
 install:
 	npm install
